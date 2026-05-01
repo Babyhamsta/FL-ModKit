@@ -11,21 +11,39 @@ Slim helper SDK for building MelonLoader IL2CPP mods for Flashing Lights.
 
 ## Projects
 
-- `FlashingLights.ModKit.Core`: reusable helper APIs.
-- `FlashingLights.ModKit.Sample`: minimal MelonLoader sample mod.
-- `FlashingLights.ModKit.Core.Tests`: no-NuGet console checks for core helpers.
+- `FlashingLights.ModKit.Core`: reusable helper APIs for runtime info, type lookup, scene scans, config, and safe patch registration.
+- `FlashingLights.ModKit.Sample`: minimal MelonLoader sample mod that logs known types and scene object counts.
+- `FlashingLights.ModKit.Core.Tests`: no-NuGet console checks for helper logic that can run outside the game.
 
-## Quick Build
+## Build
 
 ```powershell
 dotnet build FlashingLightsModKit.sln -c Release
+dotnet run --project 'tests/FlashingLights.ModKit.Core.Tests/FlashingLights.ModKit.Core.Tests.csproj' -c Release
 ```
 
-## Local Install
+## Install Sample
 
 ```powershell
 Copy-Item 'src/FlashingLights.ModKit.Core/bin/Release/net6.0/FlashingLights.ModKit.Core.dll' '../Mods/' -Force
 Copy-Item 'src/FlashingLights.ModKit.Sample/bin/Release/net6.0/FlashingLights.ModKit.Sample.dll' '../Mods/' -Force
 ```
 
-Start the game and check `../MelonLoader/Latest.log`.
+Start the game and inspect:
+
+```text
+../MelonLoader/Latest.log
+```
+
+Expected log signals:
+
+- `Flashing Lights ModKit Sample` loads.
+- SDK info logs game and Unity version.
+- Known type lookup logs found or missing types.
+- Scene load logs object counts.
+
+## Docs
+
+- `docs/setup.md`
+- `docs/il2cpp-discovery.md`
+- `docs/known-types.md`
