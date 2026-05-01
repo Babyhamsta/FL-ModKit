@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <GameRoot>$(MSBuildThisFileDirectory)..\</GameRoot>
+    <MelonLoaderNet6>$(GameRoot)MelonLoader\net6\</MelonLoaderNet6>
+    <Il2CppAssemblies>$(GameRoot)MelonLoader\Il2CppAssemblies\</Il2CppAssemblies>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>
