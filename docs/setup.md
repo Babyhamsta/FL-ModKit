@@ -5,6 +5,9 @@
 - Flashing Lights installed through Steam.
 - MelonLoader installed in the game folder.
 - .NET 6 SDK available as `dotnet`.
+- One successful MelonLoader IL2CPP game launch so `../MelonLoader/Il2CppAssemblies` exists.
+
+The build references MelonLoader outputs under `../MelonLoader/net6` and `../MelonLoader/Il2CppAssemblies`.
 
 This local install was observed at:
 

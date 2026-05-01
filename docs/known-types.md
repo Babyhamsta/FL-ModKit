@@ -1,6 +1,7 @@
 # Known Types
 
-These names were observed from `MelonLoader/Il2CppAssemblies/Assembly-CSharp.dll` in the local Flashing Lights install.
+Game-specific vehicle and traffic types were observed from `MelonLoader/Il2CppAssemblies/Assembly-CSharp.dll` in the local Flashing Lights install.
+Unity and Addressables types were observed from generated Unity/ResourceManager assemblies or catalog/runtime context.
 
 ## Vehicle And Traffic Candidates
 
