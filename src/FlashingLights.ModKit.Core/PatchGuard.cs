@@ -39,12 +39,13 @@ public static class PatchGuard
         Type? targetType,
         string methodName,
         MethodInfo postfix,
+        Type[]? parameters = null,
         Action<string>? warn = null)
     {
         ArgumentNullException.ThrowIfNull(harmony);
         ArgumentNullException.ThrowIfNull(postfix);
 
-        var original = ResolveMethod(targetType, methodName, warn: warn);
+        var original = ResolveMethod(targetType, methodName, parameters, warn);
         if (original == null)
         {
             return false;
@@ -59,12 +60,13 @@ public static class PatchGuard
         Type? targetType,
         string methodName,
         MethodInfo prefix,
+        Type[]? parameters = null,
         Action<string>? warn = null)
     {
         ArgumentNullException.ThrowIfNull(harmony);
         ArgumentNullException.ThrowIfNull(prefix);
 
-        var original = ResolveMethod(targetType, methodName, warn: warn);
+        var original = ResolveMethod(targetType, methodName, parameters, warn);
         if (original == null)
         {
             return false;

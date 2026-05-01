@@ -13,7 +13,7 @@ public static class TypeResolver
 
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
-            var type = assembly.GetType(fullName, throwOnError: false);
+            var type = GetLoadableType(assembly, fullName);
             if (type != null)
             {
                 return type;
@@ -51,6 +51,18 @@ public static class TypeResolver
 
         warn?.Invoke($"Multiple type suffix matches for {suffix}: {string.Join(", ", matches.Select(type => type.FullName))}");
         return null;
+    }
+
+    private static Type? GetLoadableType(Assembly assembly, string fullName)
+    {
+        try
+        {
+            return assembly.GetType(fullName, throwOnError: false);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)

@@ -49,6 +49,11 @@ public static class ModConfig
             warn?.Invoke($"Invalid config JSON, using defaults: {path}: {ex.Message}");
             return defaultConfig;
         }
+        catch (NotSupportedException ex)
+        {
+            warn?.Invoke($"Unsupported config JSON shape, using defaults: {path}: {ex.Message}");
+            return defaultConfig;
+        }
         catch (IOException ex)
         {
             warn?.Invoke($"Could not read config, using defaults: {path}: {ex.Message}");
