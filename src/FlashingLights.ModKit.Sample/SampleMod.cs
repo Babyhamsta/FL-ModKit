@@ -6,7 +6,15 @@ namespace FlashingLights.ModKit.Sample;
 
 public sealed class SampleMod : MelonMod
 {
+    private const int MinLoggedObjectNames = 0;
+    private const int MaxLoggedObjectNamesLimit = 50;
+
     private SampleConfig config = new();
+
+    private int MaxLoggedObjectNames => Math.Clamp(
+        config.MaxLoggedObjectNames,
+        MinLoggedObjectNames,
+        MaxLoggedObjectNamesLimit);
 
     public override void OnInitializeMelon()
     {
@@ -58,7 +66,7 @@ public sealed class SampleMod : MelonMod
         var result = SceneQuery.FindObjectNamesByType(
             type,
             includeInactive: false,
-            maxNames: config.MaxLoggedObjectNames,
+            maxNames: MaxLoggedObjectNames,
             warn: LoggerInstance.Warning);
 
         LoggerInstance.Msg($"{result.TypeName}: {result.Count} active objects");
