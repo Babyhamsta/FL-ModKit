@@ -6,7 +6,11 @@ var tests = new (string Name, Action Body)[]
     ("TypeResolver returns null for missing full name", TypeResolverReturnsNullForMissingName),
     ("ModConfig creates default config", ModConfigCreatesDefaultConfig),
     ("ModConfig keeps defaults for invalid JSON", ModConfigKeepsDefaultsForInvalidJson),
-    ("PatchGuard resolves and misses methods safely", PatchGuardResolvesMethodsSafely)
+    ("SceneQuery exposes name contains API", SceneQueryExposesNameContainsApi),
+    ("SceneQuery filters names by fragment", SceneQueryFiltersNamesByFragment),
+    ("SceneQuery rejects invalid name filters", SceneQueryRejectsInvalidNameFilters),
+    ("PatchGuard resolves and misses methods safely", PatchGuardResolvesMethodsSafely),
+    ("PatchGuard patch helpers keep warn before parameters", PatchGuardPatchHelpersKeepWarnBeforeParameters)
 };
 
 var failed = 0;
@@ -96,6 +100,64 @@ static void PatchGuardResolvesMethodsSafely()
     AssertTrue(warnings.Count == 1, "Missing method should emit one warning.");
 }
 
+static void SceneQueryExposesNameContainsApi()
+{
+    var method = typeof(SceneQuery).GetMethod(
+        nameof(SceneQuery.FindObjectNamesContaining),
+        new[] { typeof(string), typeof(bool), typeof(int), typeof(Action<string>) });
+
+    AssertNotNull(method, "SceneQuery should expose FindObjectNamesContaining with warn as fourth argument.");
+}
+
+static void SceneQueryFiltersNamesByFragment()
+{
+    var names = new[] { "Police Cruiser", "Fire Engine", "Unmarked police van", "Ambulance" };
+
+    var matches = SceneQuery.FilterObjectNamesContaining(names, "POLICE", maxNames: 1);
+
+    AssertEqual(1, matches.Count, "Matches should honor max names.");
+    AssertEqual("Police Cruiser", matches[0], "Name filtering should be case-insensitive and stable.");
+}
+
+static void SceneQueryRejectsInvalidNameFilters()
+{
+    AssertThrows<ArgumentException>(
+        () => SceneQuery.FilterObjectNamesContaining(new[] { "Car" }, " "),
+        "Blank name fragment should throw.");
+
+    AssertThrows<ArgumentOutOfRangeException>(
+        () => SceneQuery.FilterObjectNamesContaining(new[] { "Car" }, "car", maxNames: -1),
+        "Negative max names should throw.");
+}
+
+static void PatchGuardPatchHelpersKeepWarnBeforeParameters()
+{
+    var harmony = new HarmonyLib.Harmony("flashinglights.modkit.tests.patchguard.signature");
+    var warnings = new List<string>();
+    var postfix = typeof(PatchGuardSignatureTargets).GetMethod(nameof(PatchGuardSignatureTargets.Postfix))!;
+    var prefix = typeof(PatchGuardSignatureTargets).GetMethod(nameof(PatchGuardSignatureTargets.Prefix))!;
+    var parameters = new[] { typeof(int) };
+
+    var missingPostfix = PatchGuard.PatchPostfix(
+        harmony,
+        typeof(PatchGuardSignatureTargets),
+        "MissingForSignatureTest",
+        postfix,
+        warnings.Add,
+        parameters: parameters);
+    var missingPrefix = PatchGuard.PatchPrefix(
+        harmony,
+        typeof(PatchGuardSignatureTargets),
+        "MissingForSignatureTest",
+        prefix,
+        warnings.Add,
+        parameters: parameters);
+
+    AssertTrue(!missingPostfix, "Missing postfix target should return false.");
+    AssertTrue(!missingPrefix, "Missing prefix target should return false.");
+    AssertEqual(2, warnings.Count, "Missing patch targets should emit warnings.");
+}
+
 static string NewTempRoot()
 {
     return Path.Combine(Path.GetTempPath(), "flashing-lights-modkit-tests", Guid.NewGuid().ToString("N"));
@@ -141,8 +203,38 @@ static void AssertEqual<T>(T expected, T actual, string message)
     }
 }
 
+static void AssertThrows<TException>(Action action, string message)
+    where TException : Exception
+{
+    try
+    {
+        action();
+    }
+    catch (TException)
+    {
+        return;
+    }
+    catch (Exception ex)
+    {
+        throw new InvalidOperationException($"{message} Expected {typeof(TException).Name}, got {ex.GetType().Name}.");
+    }
+
+    throw new InvalidOperationException($"{message} Expected {typeof(TException).Name}.");
+}
+
 sealed class TestConfig
 {
     public bool Enabled { get; set; }
     public int Count { get; set; }
+}
+
+static class PatchGuardSignatureTargets
+{
+    public static void Prefix()
+    {
+    }
+
+    public static void Postfix()
+    {
+    }
 }

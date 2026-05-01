@@ -51,8 +51,16 @@ public static class PatchGuard
             return false;
         }
 
-        harmony.Patch(original, postfix: new HarmonyMethod(postfix));
-        return true;
+        try
+        {
+            harmony.Patch(original, postfix: new HarmonyMethod(postfix));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            warn?.Invoke($"Patch failed for {targetType?.FullName}.{methodName}: {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
     }
 
     public static bool PatchPrefix(
@@ -72,7 +80,15 @@ public static class PatchGuard
             return false;
         }
 
-        harmony.Patch(original, prefix: new HarmonyMethod(prefix));
-        return true;
+        try
+        {
+            harmony.Patch(original, prefix: new HarmonyMethod(prefix));
+            return true;
+        }
+        catch (Exception ex)
+        {
+            warn?.Invoke($"Patch failed for {targetType?.FullName}.{methodName}: {ex.GetType().Name}: {ex.Message}");
+            return false;
+        }
     }
 }
