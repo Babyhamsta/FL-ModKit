@@ -39,7 +39,17 @@ public static class PatchGuard
         Type? targetType,
         string methodName,
         MethodInfo postfix,
-        Type[]? parameters = null,
+        Action<string>? warn = null)
+    {
+        return PatchPostfix(harmony, targetType, methodName, postfix, parameters: null, warn: warn);
+    }
+
+    public static bool PatchPostfix(
+        HarmonyLib.Harmony harmony,
+        Type? targetType,
+        string methodName,
+        MethodInfo postfix,
+        Type[]? parameters,
         Action<string>? warn = null)
     {
         ArgumentNullException.ThrowIfNull(harmony);
@@ -60,7 +70,17 @@ public static class PatchGuard
         Type? targetType,
         string methodName,
         MethodInfo prefix,
-        Type[]? parameters = null,
+        Action<string>? warn = null)
+    {
+        return PatchPrefix(harmony, targetType, methodName, prefix, parameters: null, warn: warn);
+    }
+
+    public static bool PatchPrefix(
+        HarmonyLib.Harmony harmony,
+        Type? targetType,
+        string methodName,
+        MethodInfo prefix,
+        Type[]? parameters,
         Action<string>? warn = null)
     {
         ArgumentNullException.ThrowIfNull(harmony);
