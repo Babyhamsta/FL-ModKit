@@ -2,14 +2,17 @@
 
 FL-ModKit is an unofficial MelonLoader/Harmony SDK and runtime framework for building Flashing Lights mods.
 
-It gives mod authors a shared foundation for config files, an in-game management overlay, manifests, dependency validation, logging, hotkeys, and multiplayer safeguards.
+It gives mod authors the common parts most mods need: config files, an in-game overlay, logging, hotkeys, dependency checks, and multiplayer safeguards.
 
 ## Start Here
 
-- [Getting started](getting-started.md): build the SDK, package it, and deploy the runtime DLL.
-- [Build a first mod](building-first-mod.md): copy the starter template and wire your own mod metadata.
-- [API reference](api-reference.md): public `FlashingLights.ModKit.Core` types and members.
-- [Troubleshooting](troubleshooting.md): fixes for common setup and runtime issues.
+Pick the path that matches what you are doing:
+
+- [I want to install FL-ModKit](installing-fl-modkit.md): copy the runtime DLL and run FL-ModKit-based mods.
+- [I want to make my first mod](getting-started.md): use the packaged SDK and template. No SDK source build required.
+- [I want to understand the SDK](sdk-concepts.md): short explanation of config, lifecycle, UI, patches, and manifests.
+- [I want API details](api-reference.md): public `FlashingLights.ModKit.Core` types and members.
+- [I want to work on the SDK itself](building-sdk.md): build, test, and package the source repo.
 
 ## Runtime Install Summary
 

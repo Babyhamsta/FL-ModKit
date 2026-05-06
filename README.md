@@ -4,7 +4,31 @@
 [![Target](https://img.shields.io/badge/target-net6.0-512bd4)](FlashingLightsModKit.sln)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-The reference modding framework for [Flashing Lights](https://store.steampowered.com/app/605740/Flashing_Lights__Police_Firefighting_Emergency_Services_EMS_Simulator) — built on MelonLoader, Harmony, and Unity IL2CPP. Drop the SDK in, inherit one base class, and get a polished mod surface for free.
+Unofficial modding framework for [Flashing Lights](https://store.steampowered.com/app/605740/Flashing_Lights__Police_Firefighting_Emergency_Services_EMS_Simulator), built on MelonLoader, Harmony, and Unity IL2CPP.
+
+New modders can start from the packaged SDK and template. SDK contributors can build this repo from source.
+
+## Docs
+
+- [Documentation site](https://babyhamsta.github.io/FL-ModKit/)
+- [Beginner guide](https://babyhamsta.github.io/FL-ModKit/getting-started/)
+- [Build a first mod](https://babyhamsta.github.io/FL-ModKit/building-first-mod/)
+- [API reference](https://babyhamsta.github.io/FL-ModKit/api-reference/)
+- [Troubleshooting](https://babyhamsta.github.io/FL-ModKit/troubleshooting/)
+
+Markdown sources live in [docs](docs/) and are used to build the GitHub Pages site.
+
+## New modder quickstart
+
+1. Install MelonLoader v0.7.0 or newer for Flashing Lights.
+2. Download `FL-ModKit-v0.1.0-sdk.zip`.
+3. Extract the zip.
+4. Copy `templates\BasicMelonMod` to a new folder for your mod.
+5. Build the copied project with `GameRoot` pointing at the game folder and `ModKitRoot` pointing at the extracted SDK folder.
+6. Copy your built mod DLL and `lib\FlashingLights.ModKit.Core.dll` into the game's `Mods\` folder.
+7. Launch the game and press `Insert`.
+
+Full walkthrough: [Getting started](https://babyhamsta.github.io/FL-ModKit/getting-started/).
 
 ## What you get
 
@@ -26,7 +50,7 @@ You can write a MelonMod from scratch and get something working in a hundred lin
 - Multiplayer-safety is enforced at the framework level. You can't ship something that breaks public lobbies.
 - The SDK repo stays focused on framework code. Individual mods are separate consumers, so release zips contain only SDK binaries, docs, and templates.
 
-## Quickstart
+## Build the SDK from source
 
 Build the SDK and run tests:
 
@@ -49,7 +73,7 @@ powershell -ExecutionPolicy Bypass -File .\tools\package-sdk.ps1 -Configuration 
 
 Output: `artifacts\FL-ModKit-v0.1.0-sdk.zip`.
 
-## Build your first mod
+## Minimal mod shape
 
 ```csharp
 using FlashingLights.ModKit.Core;
@@ -89,32 +113,6 @@ C:\Program Files (x86)\Steam\steamapps\common\Flashing Lights\Mods\
 ```
 
 Launch the game, press `Insert`, and you'll see your mod in the list with the speed slider live-bound to the JSON config under `UserData\FlashingLightsModKit\myname.firstmod.json`.
-
-## Documentation
-
-Quickstart and concepts:
-
-- [Getting started](docs/getting-started.md) — build, package, deploy.
-- [Build a first mod](docs/building-first-mod.md) — copy the template and rename.
-- [Lifecycle](docs/lifecycle.md) — when each override fires.
-- [Project layout](docs/project-layout.md) — what lives where.
-
-API surfaces:
-
-- [API reference](docs/api-reference.md) — every public type and member.
-- [Config](docs/config.md) — JSON storage, hot reload, UI binding.
-- [In-game UI](docs/ui.md) — overlay, manifest surfaces, multiplayer guard.
-- [Patching](docs/patching.md) — `PatchGuard`, `PatchContext<TState>`.
-- [Discovery](docs/discovery.md) — `ModKitTypeResolver`, `SceneQuery`.
-
-Operating the SDK:
-
-- [Cookbook](docs/cookbook.md) — short recipes for common tasks.
-- [Debugging](docs/debugging.md) — logs, common pitfalls, in-game diagnostics.
-- [Troubleshooting](docs/troubleshooting.md) — fixes for build and load errors.
-- [Packaging](docs/packaging.md) — what `package-sdk.ps1` produces.
-- [SDK versioning](docs/sdk-versioning.md) — semver promise and migration notes.
-- [Contributing](docs/contributing.md) — how to send a PR.
 
 ## License
 

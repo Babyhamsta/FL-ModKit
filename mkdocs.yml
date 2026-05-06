@@ -34,9 +34,11 @@ theme:
 
 nav:
   - Home: index.md
-  - Getting Started:
+  - Beginner Track:
       - getting-started.md
+      - installing-fl-modkit.md
       - building-first-mod.md
+      - sdk-concepts.md
       - project-layout.md
   - Guides:
       - lifecycle.md
@@ -49,6 +51,7 @@ nav:
       - api-reference.md
       - sdk-versioning.md
   - Operations:
+      - building-sdk.md
       - debugging.md
       - troubleshooting.md
       - packaging.md

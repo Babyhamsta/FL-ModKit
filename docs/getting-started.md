@@ -1,84 +1,58 @@
 # Getting Started
 
-Build the SDK, run the tests, package the zip, drop it into the game.
+This page is for mod authors who want to create a mod.
 
-## Build
+You do not need to build the SDK source first. Start from a packaged FL-ModKit release.
 
-From the SDK folder:
+## What you need
 
-```powershell
-dotnet build .\FlashingLightsModKit.sln -c Release
-dotnet run --project .\tests\FlashingLights.ModKit.Core.Tests\FlashingLights.ModKit.Core.Tests.csproj -c Release
-```
+- Flashing Lights on PC.
+- MelonLoader v0.7.0 or newer installed for the game.
+- .NET SDK that can build `net6.0` projects.
+- `FL-ModKit-v0.1.0-sdk.zip` from the GitHub or Nexus release.
 
-If your `MelonLoader\` folder isn't a sibling of the SDK folder (typical for a Steam install), pass `GameRoot` explicitly with a trailing separator:
+## The short version
 
-```powershell
-dotnet build .\FlashingLightsModKit.sln -c Release -p:GameRoot="C:\Program Files (x86)\Steam\steamapps\common\Flashing Lights\"
-```
+1. Extract `FL-ModKit-v0.1.0-sdk.zip`.
+2. Copy `templates\BasicMelonMod` into a new folder for your mod.
+3. Rename the project, namespace, mod id, and display name.
+4. Build with `GameRoot` pointing at the game folder.
+5. Copy your mod DLL and `lib\FlashingLights.ModKit.Core.dll` into the game's `Mods\` folder.
+6. Launch the game and press `Insert`.
 
-## Package
+## Folder example
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\package-sdk.ps1 -Configuration Release
-```
-
-Output:
+After extracting the SDK zip, you should see:
 
 ```text
-artifacts\FL-ModKit-v0.1.0-sdk.zip
+FL-ModKit-v0.1.0\
+  lib\
+    FlashingLights.ModKit.Core.dll
+  templates\
+    BasicMelonMod\
+    ModTests\
+  docs\
 ```
 
-The zip contains `lib\FlashingLights.ModKit.Core.dll`, the `templates\BasicMelonMod` starter, the `docs\` folder, README, LICENSE, and CHANGELOG.
+Copy the template somewhere outside the extracted SDK folder:
 
-## Build a mod from the template
-
-1. Extract the zip somewhere outside the SDK source tree.
-2. Copy `templates\BasicMelonMod` to a new folder. Rename the folder, the project file, the namespace, and the assembly metadata in `Properties\AssemblyInfo.cs`.
-3. Open `BasicMod.cs`. Replace the body with your logic. The minimal mod looks like this:
-
-```csharp
-using FlashingLights.ModKit.Core;
-
-namespace MyFirstMod;
-
-[ModKitManifest(
-    Id = "myname.firstmod",
-    DisplayName = "My First Mod",
-    Version = "0.1.0",
-    Author = "Babyhamsta",
-    License = "MIT",
-    MinSdkVersion = "0.1.0")]
-public sealed class MyFirstMod : ModKitMelonMod<MyConfig>
-{
-    protected override string ModId => "myname.firstmod";
-
-    protected override void OnModKitInitialized()
-    {
-        LogInfo($"{Metadata.DisplayName} v{Metadata.Version} initialized.");
-    }
-
-    protected override void OnModKitEnabled() => LogInfo("Enabled.");
-    protected override void OnModKitDisabled() => LogInfo("Disabled.");
-}
-
-public sealed class MyConfig
-{
-    public bool Enabled { get; set; } = true;
-
-    [ModKitConfigDisplay("Speed multiplier")]
-    [ModKitConfigRange(0.5, 4.0, 0.1)]
-    public double SpeedMultiplier { get; set; } = 1.0;
-}
+```text
+C:\Users\Admin\Documents\FL_Mods\MyFirstMod\
 ```
 
-4. Build the project against the unzipped SDK. From the mod project folder:
+## First build command
+
+From your copied mod folder:
 
 ```powershell
 dotnet build -c Release -p:GameRoot="C:\Program Files (x86)\Steam\steamapps\common\Flashing Lights\" -p:ModKitRoot="C:\Path\To\FL-ModKit-v0.1.0\"
 ```
 
-## Deploy
+`GameRoot` is the folder that contains `MelonLoader\`.
+
+`ModKitRoot` is the extracted SDK folder that contains `lib\`.
+
+## Deploy test
 
 Copy your built mod DLL plus `FlashingLights.ModKit.Core.dll` into:
 
@@ -86,16 +60,17 @@ Copy your built mod DLL plus `FlashingLights.ModKit.Core.dll` into:
 C:\Program Files (x86)\Steam\steamapps\common\Flashing Lights\Mods\
 ```
 
-Launch the game. Press `Insert` once you're past the title screen — you'll see your mod listed with a live config editor bound to:
+Launch the game. Press `Insert` once you are past the title screen. Your mod should appear in the overlay.
+
+The config file appears here after the mod loads:
 
 ```text
 C:\Program Files (x86)\Steam\steamapps\common\Flashing Lights\UserData\FlashingLightsModKit\myname.firstmod.json
 ```
 
-Edit the JSON file with the game running and (if `EnableConfigHotReload` is on) the changes apply within the configured interval.
+## Learn next
 
-## Next steps
-
-- [Lifecycle](lifecycle.md) — when each override fires.
-- [Cookbook](cookbook.md) — patch a method, register a hotkey, write to a per-mod log file.
-- [API reference](api-reference.md) — every public type and member.
+- [Build a first mod](building-first-mod.md): exact rename and edit checklist.
+- [SDK concepts](sdk-concepts.md): what each SDK part does.
+- [Troubleshooting](troubleshooting.md): common build and load errors.
+- [Cookbook](cookbook.md): copyable recipes once the first mod loads.

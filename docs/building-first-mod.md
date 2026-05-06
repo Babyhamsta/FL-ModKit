@@ -1,91 +1,152 @@
 # Build a First Mod
 
-The fastest path:
+Goal: copy the starter template, rename it, build it, and see it in-game.
 
-1. Extract `FL-ModKit-v0.1.0-sdk.zip` somewhere outside the SDK source tree.
-2. Copy `templates\BasicMelonMod` to your own folder.
-3. Rename the folder, the project file (`BasicMelonMod.csproj`), the namespace inside the `.cs` files, and the assembly metadata in `Properties\AssemblyInfo.cs`.
-4. Edit `BasicMod.cs`. The starter is already a working mod — replace the body with your logic. Centralize metadata with the `[ModKitManifest]` attribute when you're ready.
-5. Build with `GameRoot` pointing at the folder that contains `MelonLoader\` (the Steam install for most people):
+## 1. Copy the template
 
-   ```powershell
-   dotnet build -c Release `
-     -p:GameRoot="C:\Program Files (x86)\Steam\steamapps\common\Flashing Lights\" `
-     -p:ModKitRoot="C:\Path\To\FL-ModKit-v0.1.0\"
-   ```
+Extract `FL-ModKit-v0.1.0-sdk.zip`, then copy:
 
-6. Copy your mod DLL plus `FlashingLights.ModKit.Core.dll` (from the SDK's `lib\` folder) into:
+```text
+templates\BasicMelonMod\
+```
 
-   ```text
-   C:\Program Files (x86)\Steam\steamapps\common\Flashing Lights\Mods\
-   ```
+to a new folder, for example:
 
-7. Launch the game. Press `Insert` to open the ModKit overlay. Your mod is in the Mods tab with a live config editor.
+```text
+C:\Users\Admin\Documents\FL_Mods\MyFirstMod\
+```
 
-## What the base class gives you
+## 2. Rename the project
 
-`BasicMod` inherits `ModKitMelonMod<BasicConfig>`. You get:
+Rename these things first:
 
-- A managed config under `UserData\FlashingLightsModKit\<mod-id>.json`.
-- An entry in the in-game UI with toggle, config editor, and metadata display.
-- Sealed lifecycle hooks: `OnModKitInitialized`, `OnModKitEnabled`, `OnModKitDisabled`, `OnModKitUpdate`, `OnModKitGui`, `OnModKitSceneWasLoaded`, `OnConfigApplied`, `OnConfigReloaded`. See [lifecycle.md](lifecycle.md) for ordering.
-- Multiplayer guard installed automatically.
-- Manifest validation from `[ModKitManifest]` (or virtual-property fallbacks) with dependency and SDK-version checking.
-- `LogInfo` / `LogWarning` for the MelonLoader console.
-- `PatchPrefix` / `PatchPostfix` shortcuts for safe Harmony hooks.
+| Old | New example |
+|-----|-------------|
+| Folder `BasicMelonMod` | `MyFirstMod` |
+| File `BasicMelonMod.csproj` | `MyFirstMod.csproj` |
+| Namespace `BasicMelonMod` | `MyFirstMod` |
+| File `BasicMod.cs` | `MyFirstModMod.cs` |
+| Class `BasicMod` | `MyFirstModMod` |
+| File `BasicConfig.cs` | `MyFirstModConfig.cs` |
+| Class `BasicConfig` | `MyFirstModConfig` |
 
-## Customize the metadata
+Open `Properties\AssemblyInfo.cs` and update the namespace import, mod class, display name, version, and author:
 
-Add `[ModKitManifest]` on the class for a single-place declaration:
+```csharp
+using MyFirstMod;
+using MelonLoader;
+
+[assembly: MelonInfo(typeof(MyFirstModMod), "My First Mod", "0.1.0", "Babyhamsta")]
+[assembly: MelonGame("NilsJakrins", "flashinglights")]
+```
+
+This is what MelonLoader shows in its log.
+
+## 3. Set the ModKit metadata
+
+Open the main mod class. The important values are:
 
 ```csharp
 [ModKitManifest(
-    Id = "myname.mymod",
-    DisplayName = "My Mod",
+    Id = "myname.firstmod",
+    DisplayName = "My First Mod",
     Version = "0.1.0",
     Author = "Babyhamsta",
     License = "MIT",
-    GitHubUrl = "https://github.com/Babyhamsta/FL-ModKit",
-    Changelog = "Initial public release.",
     MinSdkVersion = "0.1.0")]
-public sealed class MyMod : ModKitMelonMod<MyConfig>
+public sealed class MyFirstModMod : ModKitMelonMod<MyFirstModConfig>
 {
-    protected override string ModId => "myname.mymod";
+    protected override string ModId => "myname.firstmod";
 }
 ```
 
-`ModId` still has to come from a property override (the framework needs it before metadata is resolved, to construct the config path). Everything else can live in the attribute.
+`Id` and `ModId` must match. Use lowercase letters, numbers, dots, and dashes.
 
-## Add a config option
+For a published mod, set `Author` to the mod author's display name. If the mod has its own source repository, add `GitHubUrl`; otherwise leave it out.
 
-Public property with a setter, plus an optional decorator attribute for nicer rendering:
+## 4. Add one config option
+
+Config is a plain C# class. Public properties with getters and setters become JSON fields. Supported fields also show in the in-game Config tab.
 
 ```csharp
-public sealed class MyConfig
+public sealed class MyFirstModConfig
 {
     public bool Enabled { get; set; } = true;
 
-    [ModKitConfigDisplay("Spawn distance (m)")]
-    [ModKitConfigRange(50, 500, 10)]
-    public int SpawnDistance { get; set; } = 200;
+    [ModKitConfigDisplay("Speed multiplier")]
+    [ModKitConfigRange(0.5, 4.0, 0.1)]
+    public double SpeedMultiplier { get; set; } = 1.0;
 }
 ```
 
-Editable types: `bool`, integer numerics, floating-point numerics, `string`, enums, `string[]`.
+Keep `Enabled`. The SDK uses it for the overlay toggle.
 
-## React to changes
+## 5. Log something
+
+Start simple:
 
 ```csharp
-protected override void OnConfigApplied(MyConfig currentConfig)
+protected override void OnModKitInitialized()
 {
-    spawnDistance = currentConfig.SpawnDistance;
+    LogInfo($"{Metadata.DisplayName} initialized.");
+}
+
+protected override void OnModKitEnabled()
+{
+    LogInfo("Enabled.");
 }
 ```
 
-`OnConfigApplied` runs for every config change — UI edit, hot reload, or reset. Use it as the single funnel for "push the new config into runtime state."
+`OnModKitInitialized` runs once when MelonLoader loads the mod.
+
+`OnModKitEnabled` runs only when the mod is allowed to run and `Enabled` is true.
+
+## 6. Build
+
+```powershell
+dotnet build -c Release -p:GameRoot="C:\Program Files (x86)\Steam\steamapps\common\Flashing Lights\" -p:ModKitRoot="C:\Path\To\FL-ModKit-v0.1.0\"
+```
+
+If this fails with a missing MelonLoader or Unity DLL, check that `GameRoot` points to the folder that contains `MelonLoader\`.
+
+## 7. Deploy
+
+Copy both DLLs into the game's `Mods\` folder:
+
+```text
+bin\Release\net6.0\MyFirstMod.dll
+FL-ModKit-v0.1.0\lib\FlashingLights.ModKit.Core.dll
+```
+
+Target folder:
+
+```text
+C:\Program Files (x86)\Steam\steamapps\common\Flashing Lights\Mods\
+```
+
+Launch the game and press `Insert`. You should see:
+
+- Your mod listed in the Mods tab.
+- Your config fields in the Config tab.
+- A JSON config under `UserData\FlashingLightsModKit\`.
+
+## What the base class gives you
+
+`ModKitMelonMod<TConfig>` handles the shared work:
+
+- Config load, save, reload, and reset.
+- In-game UI entry.
+- Enable/disable lifecycle.
+- Manifest validation.
+- Multiplayer guard.
+- Log helpers.
+- Harmony patch helpers.
+
+You write the mod behavior. The SDK handles the scaffolding.
 
 ## Next steps
 
-- [Cookbook](cookbook.md) — patch a method, register a hotkey, write to a per-mod log file.
-- [API reference](api-reference.md) — every public type and member.
-- [Debugging](debugging.md) — when things don't work.
+- [SDK concepts](sdk-concepts.md): short explanation of the moving parts.
+- [Lifecycle](lifecycle.md): exact hook order.
+- [Cookbook](cookbook.md): patching, hotkeys, logging, snapshots.
+- [Troubleshooting](troubleshooting.md): common fixes.
