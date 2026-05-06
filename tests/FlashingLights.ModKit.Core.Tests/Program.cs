@@ -35,8 +35,8 @@ var tests = new (string Name, Action Body)[]
     ("ModKit multiplayer guard blocks online room operations only", ModKitMultiplayerGuardBlocksOnlineRoomOperationsOnly),
     ("ModKit multiplayer guard redirects after online room detection", ModKitMultiplayerGuardRedirectsAfterOnlineRoomDetection),
     ("ModKit multiplayer guard shows redirect banner after online detection", ModKitMultiplayerGuardShowsRedirectBannerAfterOnlineDetection),
-    ("ModKit multiplayer policy treats lobby and joining states as active online", ModKitMultiplayerPolicyTreatsLobbyAndJoiningAsActive),
-    ("ModKit multiplayer policy treats disconnected states as inactive", ModKitMultiplayerPolicyTreatsDisconnectedStatesAsInactive),
+    ("ModKit multiplayer policy requires room classification for Photon states", ModKitMultiplayerPolicyRequiresRoomClassificationForPhotonStates),
+    ("ModKit multiplayer policy treats pre-room states as inactive", ModKitMultiplayerPolicyTreatsPreRoomStatesAsInactive),
     ("ModKit runtime policy blocks manifest-invalid enabled mods", ModKitRuntimePolicyBlocksManifestInvalidEnabledMods),
     ("PatchContext TryGet returns active state atomically", PatchContextTryGetReturnsAtomicState),
     ("PatchGuard refuses duplicate patch on same Harmony id", PatchGuardRefusesDuplicatePatch),
@@ -607,6 +607,18 @@ static void ModKitMultiplayerGuardBlocksOnlineRoomOperationsOnly()
         "Photon ConnectUsingSettings should not be blocked because single player can use Photon setup before offline mode is active.");
 
     AssertTrue(
+        ModKitMultiplayerPolicy.IsKnownLocalRoom("Singleplayer (id:)", maxPlayers: 1),
+        "Singleplayer room names should be classified as local.");
+
+    AssertTrue(
+        ModKitMultiplayerPolicy.IsKnownLocalRoom("PD_Room", maxPlayers: 10),
+        "Known local voice rooms should be classified as local even with multiplayer-sized caps.");
+
+    AssertTrue(
+        !ModKitMultiplayerPolicy.IsKnownLocalRoom("Hamsta Game (id:2715)", maxPlayers: 10),
+        "Online room names should not be classified as local.");
+
+    AssertTrue(
         !ModKitMultiplayerPolicy.ShouldBlockPhotonOperation(
             hasEnabledMods: true,
             isOfflineMode: false,
@@ -865,20 +877,18 @@ static void ModConfigSaveReturnsFalseOnIoFailure()
     }
 }
 
-static void ModKitMultiplayerPolicyTreatsLobbyAndJoiningAsActive()
+static void ModKitMultiplayerPolicyRequiresRoomClassificationForPhotonStates()
 {
-    AssertTrue(ModKitMultiplayerPolicy.IsActiveOnlineClientState("Authenticating"), "Authenticating should count as active online presence.");
-    AssertTrue(ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectingToMasterserver"), "ConnectingToMasterserver should count as active.");
-    AssertTrue(ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectedToMaster"), "ConnectedToMaster should count as active.");
-    AssertTrue(ModKitMultiplayerPolicy.IsActiveOnlineClientState("JoiningLobby"), "JoiningLobby should count as active.");
-    AssertTrue(ModKitMultiplayerPolicy.IsActiveOnlineClientState("JoinedLobby"), "JoinedLobby should count as active.");
-    AssertTrue(ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectingToGameserver"), "ConnectingToGameserver should count as active.");
-    AssertTrue(ModKitMultiplayerPolicy.IsActiveOnlineClientState("Joining"), "Joining should count as active.");
-    AssertTrue(ModKitMultiplayerPolicy.IsActiveOnlineClientState("Joined"), "Joined should count as active.");
-    AssertTrue(ModKitMultiplayerPolicy.IsActiveOnlineClientState("Leaving"), "Leaving should count as active until fully disconnected.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectingToGameserver"), "ConnectingToGameserver needs current-room classification because single player can create local voice rooms.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectedToGameserver"), "ConnectedToGameserver needs current-room classification because single player can create local voice rooms.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("Joining"), "Joining needs current-room classification because single player can create local voice rooms.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("Joined"), "Joined needs current-room classification because single player can briefly join local Photon rooms.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("Leaving"), "Leaving needs current-room classification because single player can leave local voice rooms.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("DisconnectingFromGameserver"), "DisconnectingFromGameserver needs current-room classification because single player can leave local voice rooms.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("QueuedComingFromGameserver"), "QueuedComingFromGameserver needs current-room classification because single player can return from local voice rooms.");
 }
 
-static void ModKitMultiplayerPolicyTreatsDisconnectedStatesAsInactive()
+static void ModKitMultiplayerPolicyTreatsPreRoomStatesAsInactive()
 {
     AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState(null), "Null state should not count as active.");
     AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState(string.Empty), "Empty state should not count as active.");
@@ -887,6 +897,16 @@ static void ModKitMultiplayerPolicyTreatsDisconnectedStatesAsInactive()
     AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("Disconnected"), "Disconnected should not count as active.");
     AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("Disconnecting"), "Disconnecting should not count as active.");
     AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectingToNameServer"), "ConnectingToNameServer is the initial-handshake step and should not count.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectedToNameServer"), "ConnectedToNameServer should not count as an online multiplayer session.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("Authenticating"), "Authenticating should not count as an online multiplayer session.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("Authenticated"), "Authenticated should not count as an online multiplayer session.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectingToMasterserver"), "ConnectingToMasterserver should not count as an online multiplayer session.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectedToMaster"), "ConnectedToMaster should not count because single player touches the master server before local setup.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("ConnectedToMasterserver"), "ConnectedToMasterserver should not count because single player can use the master-server setup path.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("JoiningLobby"), "JoiningLobby should not count until a game server or room state is reached.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("JoinedLobby"), "JoinedLobby should not count until a game server or room state is reached.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("DisconnectingFromMasterserver"), "DisconnectingFromMasterserver should not count until the game-server handoff starts.");
+    AssertTrue(!ModKitMultiplayerPolicy.IsActiveOnlineClientState("DisconnectingFromNameServer"), "DisconnectingFromNameServer should not count as an online multiplayer session.");
 }
 
 static void ModKitRegistryReplacesManagedModsById()
