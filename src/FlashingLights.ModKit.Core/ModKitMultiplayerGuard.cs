@@ -267,19 +267,27 @@ public static class ModKitMultiplayerGuard
             return false;
         }
 
+        var currentRoom = ReadStaticObject(photonType, "CurrentRoom", "currentRoom", "room", "LJMJGGLKBKG");
+        var currentRoomName = GetCurrentRoomName(currentRoom);
+        var currentRoomMaxPlayers = GetCurrentRoomMaxPlayers(currentRoom);
         var clientStateName = ReadClientStateName(photonType);
-        lastObservedClientState = clientStateName;
+        lastObservedClientState = FormatObservedPhotonState(clientStateName, currentRoomName, currentRoomMaxPlayers);
         if (ModKitMultiplayerPolicy.IsActiveOnlineClientState(clientStateName))
         {
             return true;
         }
 
-        if (ReadStaticBool(photonType, "InRoom", "inRoom", "PCCJFAELHCI") == true)
+        if (currentRoom == null)
         {
-            return true;
+            return false;
         }
 
-        return ReadStaticObject(photonType, "CurrentRoom", "currentRoom", "room", "LJMJGGLKBKG") != null;
+        if (ModKitMultiplayerPolicy.IsKnownLocalRoom(currentRoomName, currentRoomMaxPlayers))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private static string? ReadClientStateName(Type photonType)
@@ -357,6 +365,19 @@ public static class ModKitMultiplayerGuard
             searchedPhotonNetworkType = true;
         }
         return null;
+    }
+
+    private static string FormatObservedPhotonState(string? clientStateName, string? roomName, int? maxPlayers)
+    {
+        var state = clientStateName ?? "<unknown>";
+        if (string.IsNullOrWhiteSpace(roomName) && !maxPlayers.HasValue)
+        {
+            return state;
+        }
+
+        var room = string.IsNullOrWhiteSpace(roomName) ? "<unknown>" : roomName;
+        var players = maxPlayers.HasValue ? maxPlayers.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "<unknown>";
+        return $"{state}, room={room}, maxPlayers={players}";
     }
 
     private static bool IsPhotonOfflineMode()
@@ -534,6 +555,17 @@ public static class ModKitMultiplayerGuard
         }
 
         return ToNullableInt(ReadInstanceObject(args[1], "MaxPlayers", "DNJFINGNIML"));
+    }
+
+    private static string? GetCurrentRoomName(object? room)
+    {
+        var value = ReadInstanceObject(room, "Name", "name", "GOPJJNHDEPF", "IJDCPICPCNJ", "nameField");
+        return value == null ? null : Convert.ToString(value);
+    }
+
+    private static int? GetCurrentRoomMaxPlayers(object? room)
+    {
+        return ToNullableInt(ReadInstanceObject(room, "MaxPlayers", "maxPlayers", "IBGGNFLFLJP", "DNJFINGNIML", "maxPlayersField"));
     }
 
     private static string? GetPlayMakerRoomName(object instance)

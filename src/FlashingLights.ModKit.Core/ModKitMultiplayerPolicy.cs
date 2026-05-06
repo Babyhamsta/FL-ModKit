@@ -5,15 +5,6 @@ public static class ModKitMultiplayerPolicy
     public static string OnlineBlockedMessage => ModKitStrings.Get("online.blocked");
     public static string ToggleBlockedMessage => ModKitStrings.Get("online.toggleBlocked");
 
-    private static readonly HashSet<string> InactiveClientStates = new(StringComparer.Ordinal)
-    {
-        "Uninitialized",
-        "PeerCreated",
-        "Disconnected",
-        "Disconnecting",
-        "ConnectingToNameServer"
-    };
-
     public static bool ShouldBlockOnline(bool hasEnabledMods)
     {
         return hasEnabledMods;
@@ -31,7 +22,7 @@ public static class ModKitMultiplayerPolicy
             return false;
         }
 
-        return !InactiveClientStates.Contains(clientStateName);
+        return false;
     }
 
     public static bool ShouldRedirectFromOnlineSession(bool hasEnabledMods, bool isInOnlineMultiplayer)
@@ -67,7 +58,7 @@ public static class ModKitMultiplayerPolicy
             return false;
         }
 
-        if (IsKnownLocalCreateRoom(roomName, maxPlayers))
+        if (IsKnownLocalRoom(roomName, maxPlayers))
         {
             return false;
         }
@@ -88,7 +79,7 @@ public static class ModKitMultiplayerPolicy
             || string.Equals(methodName, "ReconnectAndRejoin", StringComparison.Ordinal);
     }
 
-    private static bool IsKnownLocalCreateRoom(string? roomName, int? maxPlayers)
+    public static bool IsKnownLocalRoom(string? roomName, int? maxPlayers)
     {
         if (maxPlayers.HasValue && maxPlayers.Value <= 1)
         {
