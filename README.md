@@ -4,7 +4,7 @@
 [![Target](https://img.shields.io/badge/target-net6.0-512bd4)](FlashingLightsModKit.sln)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-The reference modding framework for [Flashing Lights](https://flashinglights-game.com/) — built on MelonLoader, Harmony, and Unity IL2CPP. Drop the SDK in, inherit one base class, and get a polished mod surface for free.
+The reference modding framework for [Flashing Lights](https://store.steampowered.com/app/605740/Flashing_Lights__Police_Firefighting_Emergency_Services_EMS_Simulator) — built on MelonLoader, Harmony, and Unity IL2CPP. Drop the SDK in, inherit one base class, and get a polished mod surface for free.
 
 ## What you get
 
