@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Verify MelonLoader assemblies present
+        shell: pwsh
+        run: |
+          $required = "$env:GAME_ROOT\MelonLoader\Il2CppAssemblies\Assembly-CSharp.dll"
+          if (-not (Test-Path $required)) {
+            Write-Error "MelonLoader assemblies not found at $required. Configure GAME_ROOT and stage assemblies before running release workflow."
+            exit 1
+          }
+        env:
+          GAME_ROOT: ${{ vars.GAME_ROOT }}
+
+      - name: Resolve version from tag
+        id: version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $version = $tag.TrimStart('v')
+          "version=$version" | Out-File $env:GITHUB_OUTPUT -Append
+
+      - name: Package SDK zip
+        shell: pwsh
+        run: |
+          .\tools\package-sdk.ps1 -Configuration Release -Version "${{ steps.version.outputs.version }}" -GameRoot "$env:GAME_ROOT\"
+        env:
+          GAME_ROOT: ${{ vars.GAME_ROOT }}
+
+      - name: Upload zip to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/FL-ModKit-v${{ steps.version.outputs.version }}-sdk.zip
+          body_path: CHANGELOG.md
+          generate_release_notes: false

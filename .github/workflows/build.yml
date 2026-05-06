@@ -1,0 +1,55 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      # ModKit Core references MelonLoader + Il2Cpp game assemblies that are not redistributable.
+      # Workflow expects an action that materializes them under $env:GAME_ROOT\MelonLoader\.
+      # Options for maintainers:
+      #   - Self-hosted runner with the game installed.
+      #   - Encrypted tarball uploaded via secret + extraction step before this job.
+      # Until that is in place, the build job is informational only.
+      - name: Restore
+        run: dotnet restore .\FlashingLightsModKit.sln
+
+      - name: Verify MelonLoader assemblies present
+        id: check_melon
+        shell: pwsh
+        run: |
+          $required = "$env:GAME_ROOT\MelonLoader\Il2CppAssemblies\Assembly-CSharp.dll"
+          if (Test-Path $required) {
+            "have_assemblies=true" | Out-File $env:GITHUB_OUTPUT -Append
+          } else {
+            "have_assemblies=false" | Out-File $env:GITHUB_OUTPUT -Append
+            Write-Warning "MelonLoader assemblies not found at $required. Build step will be skipped."
+          }
+        env:
+          GAME_ROOT: ${{ vars.GAME_ROOT }}
+
+      - name: Build
+        if: steps.check_melon.outputs.have_assemblies == 'true'
+        run: dotnet build .\FlashingLightsModKit.sln -c Release "-p:GameRoot=${{ vars.GAME_ROOT }}\"
+        env:
+          GAME_ROOT: ${{ vars.GAME_ROOT }}
+
+      - name: Run tests
+        if: steps.check_melon.outputs.have_assemblies == 'true'
+        run: dotnet run --project .\tests\FlashingLights.ModKit.Core.Tests\FlashingLights.ModKit.Core.Tests.csproj -c Release "-p:GameRoot=${{ vars.GAME_ROOT }}\" --no-build

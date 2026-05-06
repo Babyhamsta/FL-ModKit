@@ -1,9 +1,20 @@
+# Build output
 bin/
 obj/
+artifacts/
+
+# IDE/user state
 .vs/
 .vscode/
+.superpowers/
 *.user
 *.suo
+
+# Local runtime/config output
 *.log
-artifacts/
 local.settings.json
+update.md
+
+# Packages
+*.nupkg
+*.snupkg
