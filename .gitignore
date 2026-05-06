@@ -2,6 +2,7 @@
 bin/
 obj/
 artifacts/
+site/
 
 # IDE/user state
 .vs/

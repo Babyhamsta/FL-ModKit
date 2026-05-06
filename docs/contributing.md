@@ -94,4 +94,4 @@ This repo is the public SDK. Gameplay mods should live in separate repositories 
 
 ## License
 
-By contributing you agree your work will be licensed under the [MIT license](../LICENSE) used by this repo.
+By contributing you agree your work will be licensed under the MIT license used by this repo.
